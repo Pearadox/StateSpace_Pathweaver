@@ -11,6 +11,10 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.controller.RamseteController;
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
+import frc.robot.commands.ArmDown;
+import frc.robot.commands.ArmUp;
+import frc.robot.commands.ZeroArmSensor;
+import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.DriveSubsystem;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
@@ -35,9 +39,10 @@ import java.util.List;
 public class RobotContainer {
   // The robot's subsystems
   public final DriveSubsystem m_robotDrive = new DriveSubsystem();
+  public final Arm m_arm = new Arm();
 
   // The driver's controller
-  XboxController m_driverController =
+  public static XboxController m_driverController =
       new XboxController(Constants.OIConstants.kDriverControllerPort);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -53,8 +58,8 @@ public class RobotContainer {
         new RunCommand(
             () ->
                 m_robotDrive.arcadeDrive(
-                    -m_driverController.getY(GenericHID.Hand.kRight),
-                    m_driverController.getX(GenericHID.Hand.kLeft)),
+                    -m_driverController.getRawAxis(0),
+                    m_driverController.getRawAxis(1)),
             m_robotDrive));
   }
 
@@ -64,11 +69,18 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then calling passing it to a
    * {@link JoystickButton}.
    */
+  JoystickButton btn1 = new JoystickButton(m_driverController, 1);
+  JoystickButton btn2 = new JoystickButton(m_driverController, 2);
+  JoystickButton btn3 = new JoystickButton(m_driverController, 3);
   private void configureButtonBindings() {
     // Drive at half speed when the right bumper is held
     new JoystickButton(m_driverController, Button.kBumperRight.value)
         .whenPressed(() -> m_robotDrive.setMaxOutput(0.5))
         .whenReleased(() -> m_robotDrive.setMaxOutput(1));
+    btn1.whenPressed(new ArmUp(m_arm));
+    btn2.whenPressed(new ArmDown(m_arm));
+    btn3.whenPressed(new ZeroArmSensor(m_arm));
+    
   }
 
   public DriveSubsystem getRobotDrive() {
